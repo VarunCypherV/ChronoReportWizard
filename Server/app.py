@@ -4,6 +4,7 @@ import schedule
 import threading
 import datetime
 import time
+import bcrypt
 from flask_cors import CORS # Import CORS from flask_cors
 from crawler import crawlerImage
 
@@ -29,6 +30,19 @@ def format_datetime(dt):
 
 def create_tag(scheduled_datetime, empid, reportName):
     return str(scheduled_datetime) + str(empid) + reportName + str(reportName)
+
+def hash_password(password):
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed_password
+
+# VERIFY PASSWORD FUNCTION
+def verify_password(hashed_password, password):
+    if isinstance(hashed_password, str):
+        hashed_password = hashed_password.encode('utf-8')
+    if isinstance(password, str):
+        password = password.encode('utf-8')
+    return bcrypt.checkpw(password, hashed_password)
 
 # THREADING AND PROJECT OBJECTIVE FUNCTIONS========================
 def start_thread(empid, reportName, email):
@@ -115,6 +129,48 @@ def get_records(empid):
         records.append(record)
 
     return jsonify(records), 200
+
+#=======================================================================
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    # Hash the password before storing in the database
+    hashed_password = hash_password(password)
+
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO employees (email, password) VALUES (%s, %s)", (email, hashed_password))
+    conn.commit()
+
+    
+    cursor.execute("SELECT LAST_INSERT_ID()")
+    empid = cursor.fetchone()[0]
+    cursor.close()
+    
+    return jsonify({"empid": empid, "message": "User registered successfully."}), 200
+
+# USER LOGIN ROUTE
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    empid = data.get('empid')
+    password = data.get('password')
+    print("Login request received for empid:", empid)
+    cursor = conn.cursor()
+    cursor.execute("SELECT password FROM employees WHERE empid = %s", (empid,))
+    row = cursor.fetchone()
+    cursor.close()
+
+    if row:
+        hashed_password = row[0]
+        if verify_password(hashed_password, password):
+            return jsonify({"message": "Login successful."}), 200
+        else:
+            return jsonify({"error": "Invalid credentials."}), 401
+    else:
+        return jsonify({"error": "User not found."}), 404
 
 
 if __name__ == '__main__':

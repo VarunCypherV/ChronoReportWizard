@@ -1,0 +1,174 @@
+/* Container styles */
+.login-container,
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden; /* Hide overflowing content */
+}
+
+/* Form styles */
+.login-form,
+.register-form {
+  background: linear-gradient(to bottom right, #002240, #003366);
+  padding: 40px; /* Increased padding for larger form */
+  border-radius: 12px; /* Increased border-radius for smoother corners */
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Increased box shadow for depth */
+  color: white;
+  width: 300px; /* Adjust width of form */
+}
+
+.login-form h2,
+.register-form h2 {
+  text-align: center;
+  margin-bottom: 30px; /* Increased margin for better separation */
+}
+
+.form-group {
+  margin-bottom: 20px; /* Increased margin for better separation */
+}
+
+label {
+  display: block;
+  margin-bottom: 10px; /* Increased margin for better alignment */
+}
+
+input[type="text"],
+input[type="password"] {
+  width: calc(100% - 24px); /* Adjusted width to accommodate padding */
+  padding: 12px; /* Increased padding for better input size */
+  border-radius: 6px; /* Increased border-radius for smoother corners */
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  padding: 12px; /* Increased padding for better button size */
+  border: none;
+  border-radius: 6px; /* Increased border-radius for smoother corners */
+  background-color: transparent; /* Changed button background to transparent */
+  color: #007bff; /* Set button text color */
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Added transition for smoother hover effect */
+}
+
+button:hover {
+  background-color: rgba(0, 123, 255, 0.1); /* Semi-transparent background on hover */
+}
+
+.ghost-button {
+  border: 2px solid #007bff; /* Ghost button border */
+  background-color: transparent; /* Ghost button background */
+  color: #007bff; /* Ghost button text color */
+}
+
+.ghost-button:hover {
+  background-color: rgba(0, 123, 255, 0.1); /* Semi-transparent background on hover */
+}
+
+/* Updated body styles for dark navy blue background */
+body {
+  color: white;
+  background:  #0d0059; /* Dark navy blue background */
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+@keyframes waveAnimation {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.container {
+  width: 80%;
+  margin: auto;
+  padding: 20px;
+}
+
+.form {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Update the styles for the form elements */
+/* Updated styles for select */
+.select {
+  padding: 12px; /* Increase padding for better spacing */
+  font-size: 18px; /* Increase font size for the select */
+  margin-right: 25px; /* Add margin to create spacing between elements */
+  min-width: 40%;
+  border-radius: 25px;
+  border: 1px navy;
+  background-color: white; /* Retain background color */
+  color: navy; /* Retain text color */
+  cursor: pointer; /* Retain cursor style */
+}
+
+/* Updated styles for input */
+.input {
+  padding: 12px; /* Increase padding for better spacing */
+  margin-right: 20px; /* Add more margin to create additional space */
+  width: 150px; /* Adjust width to give more horizontal space */
+  min-width: 15%;
+  border-radius: 25px; /* Add border-radius */
+  border: 1px navy;
+  background-color: white; /* Retain background color */
+  color: navy; /* Retain text color */
+  cursor: pointer; /* Retain cursor style */
+}
+
+
+.button {
+  padding: 10px 15px; /* Reduce padding for smaller button size */
+  border-radius: 4px; /* Adjusted border-radius */
+  background-color: navy; /* Retain background color */
+  color: white; /* Retain text color */
+  cursor: pointer; /* Retain cursor style */
+}
+
+.button:hover {
+  background-color: darkblue; /* Retain hover effect color */
+}
+
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background-color: navy;
+  color: white;
+}
+
+.status {
+  font-weight: bold;
+}
+
+/* Update button styles */
+
+
+/* Style the current time */
+.current-time {
+  font-weight: bold; /* Make the text bold */
+  font-size: 1em; /* Increase font size for better visibility */
+  color: white; /* Set text color */
+  min-width: 100px;
+  margin-left: 25px;
+}
+

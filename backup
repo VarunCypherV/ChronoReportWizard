@@ -4,28 +4,16 @@ import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react'; // Importing useEffect hook
 import axios from 'axios'; // Import axios for making HTTP requests
 
-// const initialRequests = [
-//   { id: 1, reportName: 'Report 1', datetime: '10:00 AM', status: 'Not yet' },
-//   { id: 2, reportName: 'Report 2', datetime: '11:00 AM', status: 'Received' },
-// ];
+const initialRequests = [
+  { id: 1, reportName: 'Report 1', datetime: '10:00 AM', status: 'Not yet' },
+  { id: 2, reportName: 'Report 2', datetime: '11:00 AM', status: 'Received' },
+];
 
 const SchedulePage = () => {
   const [reportName, setReportName] = useState('');
   const [datetime, setDateTime] = useState('');
-  const [requests, setRequests] = useState();
+  const [requests, setRequests] = useState(initialRequests);
   const [currentTime, setCurrentTime] = useState('');
-
-  useEffect(() => {
-    // Fetch data from the API endpoint
-    axios.get('http://127.0.0.1:5000/get_records/13')
-      .then(response => {
-        setRequests(response.data);
-      })
-      .catch(error => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -40,7 +28,7 @@ const SchedulePage = () => {
     // Send POST request to server
     let empid = "12";
     let email = "coolvarun304@gmail.com";
-// Logging the datetime value
+    console.log(datetime); // Logging the datetime value
     
     // Extract date components
     const date = new Date(datetime);
@@ -78,8 +66,7 @@ const SchedulePage = () => {
         console.error("Error:", error); // Logging errors, if any
       });
   };
-
-
+  
   
   
   
@@ -108,7 +95,6 @@ const SchedulePage = () => {
       </div>
 
       <table className="table">
-
         <thead>
           <tr>
             <th>Sno</th>
@@ -119,13 +105,18 @@ const SchedulePage = () => {
           </tr>
         </thead>
         <tbody>
-        {requests && requests.map((request, index) => (
-            <tr key={index}>
+          {requests.map((request, index) => (
+            <tr key={request.id}>
               <td>{index + 1}</td>
-              <td>{request.requestid}</td>
-              <td>{request.reportname}</td>
-              <td>{request.needtime}</td>
-              <td>{request.status}</td>
+              <td>{request.id}</td>
+              <td>{request.reportName}</td>
+              <td>{request.datetime}</td>
+              <td
+                style={{ color: request.status === 'Received' ? 'green' : 'red' }}
+                className="status"
+              >
+                {request.status}
+              </td>
             </tr>
           ))}
         </tbody>

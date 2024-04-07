@@ -87,6 +87,35 @@ def schedule_report():
     # Schedule task
     schedulemytask(datetime, empid, reportName, email)
     return jsonify({"message": "Report scheduled successfully."}), 200
+#============================================================================
+
+@app.route('/get_records/<int:empid>', methods=['GET'])
+def get_records(empid):
+    cursor = conn.cursor()
+    query = "SELECT * FROM EMP_NT WHERE empid = %s ORDER BY status DESC, needtime ASC"
+    cursor.execute(query, (empid,))
+    rows = cursor.fetchall()
+    cursor.close()
+
+    records = []
+    for row in rows:
+        print()
+        print(row)
+        print()
+        requestid,empid, reportname, needtime, email, status = row
+        formatted_needtime = format_datetime(needtime)
+        record = {
+            "requestid" : requestid,
+            "empid": empid,
+            "reportname": reportname,
+            "needtime": formatted_needtime,
+            "email": email,
+            "status": status
+        }
+        records.append(record)
+
+    return jsonify(records), 200
+
 
 if __name__ == '__main__':
     threading.Thread(target=run_schedule).start()  # Start the schedule in a separate thread

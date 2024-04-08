@@ -101,34 +101,51 @@ def schedule_report():
     # Schedule task
     schedulemytask(datetime, empid, reportName, email)
     return jsonify({"message": "Report scheduled successfully."}), 200
-#============================================================================
+
+
 
 @app.route('/get_records/<int:empid>', methods=['GET'])
 def get_records(empid):
+
     cursor = conn.cursor()
-    query = "SELECT * FROM EMP_NT WHERE empid = %s ORDER BY status DESC, needtime ASC"
+
+    # Fetch records from EMP_NT table
+    query = "SELECT * FROM EMP_NT WHERE EmpId = %s ORDER BY status DESC, needtime ASC"
     cursor.execute(query, (empid,))
     rows = cursor.fetchall()
-    cursor.close()
+    # Fetch email from employees table
+    query_email = "SELECT email FROM employees WHERE empid = %s"
+    cursor.execute(query_email, (empid,))
+    email_row = cursor.fetchone()
+
+    if email_row:
+        email = email_row[0]
+    else:
+        email = None
+
+    
 
     records = []
-    for row in rows:
-        print()
-        print(row)
-        print()
-        requestid,empid, reportname, needtime, email, status = row
-        formatted_needtime = format_datetime(needtime)
-        record = {
-            "requestid" : requestid,
-            "empid": empid,
-            "reportname": reportname,
-            "needtime": formatted_needtime,
-            "email": email,
-            "status": status
-        }
-        records.append(record)
+    if rows :
+        for row in rows:
+            requestid, empid, reportname, needtime, _, status = row  # Exclude email from EMP_NT query
+            formatted_needtime = format_datetime(needtime)
+            record = {
+                "requestid": requestid,
+                "empid": empid,
+                "reportname": reportname,
+                "needtime": formatted_needtime,
+                "status": status
+            }
+            records.append(record)
 
-    return jsonify(records), 200
+    response = {
+        "email": email,
+        "records": records
+    }
+    cursor.close()
+    return jsonify(response), 200
+
 
 #=======================================================================
 @app.route('/register', methods=['POST'])
@@ -151,7 +168,7 @@ def register():
     
     return jsonify({"empid": empid, "message": "User registered successfully."}), 200
 
-# USER LOGIN ROUTE
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -171,7 +188,6 @@ def login():
             return jsonify({"error": "Invalid credentials."}), 401
     else:
         return jsonify({"error": "User not found."}), 404
-
 
 if __name__ == '__main__':
     threading.Thread(target=run_schedule).start()  # Start the schedule in a separate thread

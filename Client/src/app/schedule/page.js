@@ -1,48 +1,52 @@
 'use client'
 // 'use client'
 import dynamic from 'next/dynamic';
-import { useState, useEffect } from 'react'; // Importing useEffect hook
-import axios from 'axios'; // Import axios for making HTTP requests
-
-// const initialRequests = [
-//   { id: 1, reportName: 'Report 1', datetime: '10:00 AM', status: 'Not yet' },
-//   { id: 2, reportName: 'Report 2', datetime: '11:00 AM', status: 'Received' },
-// ];
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation'
 
 const SchedulePage = () => {
   const [reportName, setReportName] = useState('');
   const [datetime, setDateTime] = useState('');
   const [requests, setRequests] = useState();
   const [currentTime, setCurrentTime] = useState('');
-
+  const [empid, setEmpId] = useState("");
+  const [email, setEmail] = useState("");
+  const [rerender, setRerender] = useState(false); // State variable for triggering rerender
+  const { push } = useRouter();
   useEffect(() => {
-    // Fetch data from the API endpoint
-    axios.get('http://127.0.0.1:5000/get_records/13')
-      .then(response => {
-        setRequests(response.data);
-      })
-      .catch(error => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
-
+    if (typeof window !== 'undefined') {
+      const storedEmpId = window.sessionStorage.getItem('empId');
+      setEmpId(storedEmpId);
+      console.log(storedEmpId); // Log the retrieved empId
+    }
+  }, [rerender]); // Empty dependency array to run this effect only once
+  
   useEffect(() => {
+    if (empid) { // Ensure empid is truthy before making the axios call
+      axios.get(`http://127.0.0.1:5000/get_records/${empid}`)
+        .then(response => {
+          setRequests(response.data.records);
+          setEmail(response.data.email);
+        })
+        .catch(error => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  
     const intervalId = setInterval(() => {
       const now = new Date();
       setCurrentTime(now.toLocaleTimeString());
     }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
+  
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [empid,rerender]); // Run this effect whenever empid changes
+  
+  // Add rerender to dependencies so that useEffect runs again when rerender state changes
 
   const handleRequestSubmit = () => {
-    // Send POST request to server
-    let empid = "12";
-    let email = "coolvarun304@gmail.com";
-// Logging the datetime value
-    
-    // Extract date components
     const date = new Date(datetime);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Month starts from 0
@@ -50,10 +54,9 @@ const SchedulePage = () => {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
-    // Format the datetime string
+
     const formattedDatetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    
+
     axios
       .post("http://127.0.0.1:5000/schedule_report", {
         empid,
@@ -62,27 +65,27 @@ const SchedulePage = () => {
         datetime: formattedDatetime, // Use the formatted datetime
       })
       .then((response) => {
-        console.log(response.data); // Logging the response from the server
-        // Update UI with the new request
-        const newRequest = {
-          id: requests.length + 1,
-          reportName,
-          datetime: formattedDatetime, // Use the formatted datetime
-          status: "Not yet",
-        };
-        setRequests([...requests, newRequest]);
+        console.log(response.data)
         setReportName("");
         setDateTime("");
+        setRerender(prev => !prev); // Toggle the rerender state
       })
       .catch((error) => {
         console.error("Error:", error); // Logging errors, if any
       });
   };
 
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem('empId');
+      setEmpId(""); // Clear empid state
+      setRequests(null); // Clear requests state
+      setEmail(""); // Clear email state
+      setRerender(prev => !prev); // Trigger rerender to reset the component
+      push("/login")
+    }
+  };
 
-  
-  
-  
   return (
     <div className="container">
       <div className="form">
@@ -104,11 +107,11 @@ const SchedulePage = () => {
         <button onClick={handleRequestSubmit} className="button">
           Request
         </button>
+        <button onClick={handleLogout} className="button">Logout</button>
         <div className="current-time">{currentTime}</div>
       </div>
 
       <table className="table">
-
         <thead>
           <tr>
             <th>Sno</th>
@@ -119,7 +122,7 @@ const SchedulePage = () => {
           </tr>
         </thead>
         <tbody>
-        {requests && requests.map((request, index) => (
+          {requests && requests.map((request, index) => (
             <tr key={index}>
               <td>{index + 1}</td>
               <td>{request.requestid}</td>

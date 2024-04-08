@@ -17,6 +17,8 @@
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4); /* Increased box shadow for depth */
   color: white;
   width: 300px; /* Adjust width of form */
+  align-items: center;
+  justify-content: center;
 }
 
 .login-form h2,
@@ -45,15 +47,34 @@ input[type="password"] {
 button {
   width: 100%;
   padding: 12px; /* Increased padding for better button size */
+  margin:10px 10px;
   border: none;
   border-radius: 6px; /* Increased border-radius for smoother corners */
-  background-color: transparent; /* Changed button background to transparent */
-  color: #007bff; /* Set button text color */
+  background-color: navy; /* Changed button background to transparent */
+  color: white; /* Retain text color */
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Added transition for smoother hover effect */
+  
+}
+
+
+button:hover {
+  background-color: rgba(0, 123, 255, 0.1); /* Semi-transparent background on hover */
+}
+
+button.buttonLR {
+  width: 100%;
+  padding: 12px; /* Increased padding for better button size */
+  margin:10px 0px;
+  border: none;
+  border-radius: 6px; /* Increased border-radius for smoother corners */
+  background-color: navy; /* Changed button background to transparent */
+  color: white; /* Retain text color */
   cursor: pointer;
   transition: background-color 0.3s ease; /* Added transition for smoother hover effect */
 }
 
-button:hover {
+button.buttonLR:hover {
   background-color: rgba(0, 123, 255, 0.1); /* Semi-transparent background on hover */
 }
 
@@ -126,17 +147,6 @@ body {
 }
 
 
-.button {
-  padding: 10px 15px; /* Reduce padding for smaller button size */
-  border-radius: 4px; /* Adjusted border-radius */
-  background-color: navy; /* Retain background color */
-  color: white; /* Retain text color */
-  cursor: pointer; /* Retain cursor style */
-}
-
-.button:hover {
-  background-color: darkblue; /* Retain hover effect color */
-}
 
 
 .table {

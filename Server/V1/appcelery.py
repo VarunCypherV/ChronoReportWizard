@@ -1,21 +1,19 @@
-from flask import Flask, request, jsonify
-import pymysql
-import schedule
-import threading
-import datetime
-import time
-import bcrypt
-from flask_cors import CORS # Import CORS from flask_cors
-from apscheduler.schedulers.background import BackgroundScheduler
-from crawler import crawlerImage
+# app.py
 
+from flask import Flask, request, jsonify
+from celery import Celery
+from Server.V1.tasks import crawl_images
+from datetime import datetime
+import pymysql
+import bcrypt
+from flask_cors import CORS
+from Server.V1.celeryconfig import broker_url
 app = Flask(__name__)
 CORS(app)
-#SCHEDULER=============================================
-scheduler = BackgroundScheduler()
-scheduler.start()
 
-# MySQL CONNECTION=============================
+app.config['CELERY_BROKER_URL'] = broker_url  # Example Redis broker URL
+celery = Celery(__name__, broker=app.config['CELERY_BROKER_URL'])
+
 HOST = 'localhost'
 USER = 'root'
 PASSWORD = 'Mysqlvarun#2004'
@@ -23,63 +21,27 @@ DATABASE = 'RAMCO_TESTDB'
 
 conn = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
 conn.commit()
-print(conn)
-
-# UTILITY FUNCTIONS===========================
-
-def get_time() -> str:
-    return time.strftime("%X (%d/%m/%y)")
 
 def format_datetime(dt):
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
-def schedulerdateformater(dt):
-    return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
-
-def create_tag(scheduled_datetime, empid, reportName):
-    return str(scheduled_datetime) + str(empid) + reportName + str(reportName)
-
-def hash_password(password):
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
-    return hashed_password
-
-# VERIFY PASSWORD FUNCTION
-def verify_password(hashed_password, password):
-    if isinstance(hashed_password, str):
-        hashed_password = hashed_password.encode('utf-8')
-    if isinstance(password, str):
-        password = password.encode('utf-8')
-    return bcrypt.checkpw(password, hashed_password)
-
-
-# API ROUTES=========================
 @app.route('/schedule_report', methods=['POST'])
 def schedule_report():
     data = request.json
     empid = data.get('empid')
     reportName = data.get('reportName')
     email = data.get('email')
-    datetimez = data.get('datetime') 
-    print()
-    print(datetimez)
-    print()
-    # Insert into database
+    datetime_str = data.get('datetime')
+    datetime_obj = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+
     cursor = conn.cursor()
     cursor.execute("INSERT INTO EMP_NT (empid, reportname, needtime, email) VALUES (%s, %s, %s, %s)",
-                   (empid, reportName, datetimez, email))
+                   (empid, reportName, datetime_obj, email))
     conn.commit()
     cursor.close()
-    scheduled_datetime = datetime.datetime.strptime(datetimez, '%Y-%m-%d %H:%M:%S')
-    
-    print()
-    print(datetimez)
-    print()
-    scheduler.add_job(crawlerImage, 'date', run_date=scheduled_datetime, args=[reportName, "https://www.amazon.com/", empid, email])
 
+    crawl_images.apply_async((empid, reportName, email), eta=datetime_obj)
     return jsonify({"message": "Report scheduled successfully."}), 200
-
-
 
 @app.route('/get_records/<int:empid>', methods=['GET'])
 def get_records(empid):
@@ -159,11 +121,6 @@ def login():
             return jsonify({"error": "Invalid credentials."}), 401
     else:
         return jsonify({"error": "User not found."}), 404
-
-
-
-def start_flask_app():
-    app.run()
 
 if __name__ == '__main__':
     app.run(debug=True)

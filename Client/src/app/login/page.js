@@ -62,10 +62,10 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <button class="buttonLR" type="submit">Login</button>
+          <button className="buttonLR" type="submit">Login</button>
         </form>
         <Link href="/register">
-          <button class="buttonLR">Register</button>
+          <button className="buttonLR">Register</button>
         </Link>
       </div>
     </div>

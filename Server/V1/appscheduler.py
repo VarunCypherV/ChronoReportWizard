@@ -6,15 +6,10 @@ import datetime
 import time
 import bcrypt
 from flask_cors import CORS # Import CORS from flask_cors
-from apscheduler.schedulers.background import BackgroundScheduler
 from crawler import crawlerImage
 
 app = Flask(__name__)
 CORS(app)
-#SCHEDULER=============================================
-scheduler = BackgroundScheduler()
-scheduler.start()
-
 # MySQL CONNECTION=============================
 HOST = 'localhost'
 USER = 'root'
@@ -33,9 +28,6 @@ def get_time() -> str:
 def format_datetime(dt):
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
-def schedulerdateformater(dt):
-    return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
-
 def create_tag(scheduled_datetime, empid, reportName):
     return str(scheduled_datetime) + str(empid) + reportName + str(reportName)
 
@@ -52,6 +44,45 @@ def verify_password(hashed_password, password):
         password = password.encode('utf-8')
     return bcrypt.checkpw(password, hashed_password)
 
+# THREADING AND PROJECT OBJECTIVE FUNCTIONS========================
+def start_thread(empid, reportName, email):
+    job = threading.Thread(target=lambda: task(empid, reportName, email))
+    job.start()
+
+def task(empid, reportName, email):
+    crawlerImage(reportName, "https://www.amazon.com/", empid, email)
+    return schedule.CancelJob
+
+def ExecuteQuery():
+    print("fetched at ", get_time())
+    cursor = conn.cursor()
+    query = "SELECT * FROM EMP_NT"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    cursor.close()
+    for row in rows:
+        empid, reportname, needtime, email = row
+        formatted_needtime = format_datetime(needtime)
+        print(f"EmpId: {empid}, ReportName: {reportname}, NeedTime: {formatted_needtime} , email : {email}")
+        schedulemytask(formatted_needtime, empid, reportname, email)
+
+schedule.every().minute.do(ExecuteQuery)
+
+def schedulemytask(scheduled_datetime, empid, reportName, email):
+    schedule_date, scheduled_time = scheduled_datetime.split(" ")
+    generated_tag = create_tag(scheduled_datetime, empid, reportName)
+    if (datetime.datetime.now().strftime("%Y-%m-%d") == schedule_date and schedule.get_jobs(generated_tag) == []):
+        time.sleep(1)
+        schedule.every().day.at(scheduled_time).do(lambda: start_thread(empid, reportName, email)).tag(generated_tag)
+
+#=====================SCHEDULE IS RUNNING=========================
+def run_schedule():
+    while True:
+        print("Checking for pending jobs at:", get_time())
+        schedule.run_pending()
+        time.sleep(1)
+
+
 
 # API ROUTES=========================
 @app.route('/schedule_report', methods=['POST'])
@@ -60,23 +91,17 @@ def schedule_report():
     empid = data.get('empid')
     reportName = data.get('reportName')
     email = data.get('email')
-    datetimez = data.get('datetime') 
+    datetime = data.get('datetime')  # assuming needtime is provided in proper format
     print()
-    print(datetimez)
+    print(datetime)
     print()
     # Insert into database
     cursor = conn.cursor()
     cursor.execute("INSERT INTO EMP_NT (empid, reportname, needtime, email) VALUES (%s, %s, %s, %s)",
-                   (empid, reportName, datetimez, email))
+                   (empid, reportName, datetime, email))
     conn.commit()
     cursor.close()
-    scheduled_datetime = datetime.datetime.strptime(datetimez, '%Y-%m-%d %H:%M:%S')
-    
-    print()
-    print(datetimez)
-    print()
-    scheduler.add_job(crawlerImage, 'date', run_date=scheduled_datetime, args=[reportName, "https://www.amazon.com/", empid, email])
-
+    schedulemytask(datetime, empid, reportName, email)
     return jsonify({"message": "Report scheduled successfully."}), 200
 
 
@@ -166,4 +191,10 @@ def start_flask_app():
     app.run()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+
+    # sch=threading.Thread(target=lambda:run_schedule)
+    # sch.start()  # Start the schedule in a separate thread
+    # app.run(debug=True)
+    flask_thread = threading.Thread(target=lambda:start_flask_app)
+    flask_thread.start()
+    run_schedule()

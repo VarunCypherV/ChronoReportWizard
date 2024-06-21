@@ -95,8 +95,8 @@ const SchedulePage = () => {
           className="select"
         >
           <option value="">Select Report</option>
-          <option value="Report 1">Report 1</option>
-          <option value="Report 2">Report 2</option>
+          <option value="Report AC">Report AC</option>
+          <option value="Report TV">Report TV</option>
         </select>
         <input
           type="datetime-local"

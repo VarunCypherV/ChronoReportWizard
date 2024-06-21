@@ -18,8 +18,8 @@ scheduler.start()
 # MySQL CONNECTION=============================
 HOST = 'localhost'
 USER = 'root'
-PASSWORD = 'Mysqlvarun#2004'
-DATABASE = 'RAMCO_TESTDB'
+PASSWORD = ''
+DATABASE = 'ChronoWiz'
 
 conn = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
 conn.commit()
@@ -61,9 +61,7 @@ def schedule_report():
     reportName = data.get('reportName')
     email = data.get('email')
     datetimez = data.get('datetime') 
-    print()
-    print(datetimez)
-    print()
+
     # Insert into database
     cursor = conn.cursor()
     cursor.execute("INSERT INTO EMP_NT (empid, reportname, needtime, email) VALUES (%s, %s, %s, %s)",
@@ -71,10 +69,7 @@ def schedule_report():
     conn.commit()
     cursor.close()
     scheduled_datetime = datetime.datetime.strptime(datetimez, '%Y-%m-%d %H:%M:%S')
-    
-    print()
-    print(datetimez)
-    print()
+
     scheduler.add_job(crawlerImage, 'date', run_date=scheduled_datetime, args=[reportName, "https://www.amazon.com/", empid, email])
 
     return jsonify({"message": "Report scheduled successfully."}), 200
@@ -85,7 +80,7 @@ def schedule_report():
 def get_records(empid):
     cursor = conn.cursor()
     # Fetch records from EMP_NT table
-    query = "SELECT * FROM EMP_NT WHERE EmpId = %s ORDER BY status DESC, needtime ASC"
+    query = "SELECT * FROM EMP_NT WHERE EmpId = %s ORDER BY status DESC, needtime DESC"
     cursor.execute(query, (empid,))
     rows = cursor.fetchall()
     # Fetch email from employees table

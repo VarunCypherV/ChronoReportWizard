@@ -2,6 +2,12 @@
 import os
 import smtplib
 from email.message import EmailMessage
+HOST = 'localhost'
+USER = 'root'
+PASSWORD = ''
+DATABASE = 'ChronoWiz'
+
+
 EMAIL_ADDRESS = os.environ.get('EMAIL_ADDRESS') #cant use gmail for sending addresses
 EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
@@ -13,8 +19,8 @@ def sendEmail(imgpath,receiverEmail):
         msg = EmailMessage()
         msg['From'] = EMAIL_ADDRESS
         msg['To'] = receiverEmail
-        msg['Subject'] = "Test Subject"
-        msg.set_content("Test Body")  #CONTENT CRAWLED CAN BE MAILED HERE BY SETTING THIS TO CONTENT
+        msg['Subject'] = "Requested Report"
+        msg.set_content("Requested Report has been attached")  
 
         ##ADD FOR ATTACHMENT REMOVE IF NOT REQUIRED
         with open(imgpath, "rb") as image_file:
